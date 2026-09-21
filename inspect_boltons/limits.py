@@ -15,8 +15,36 @@ class UnproductiveLoopLimit:
 
     A turn is an assistant message. A turn counts as productive if it calls any tool
     other than those named in `unproductive_tools`. Call `check(state)` after each
-    turn (e.g. from a `react()` `on_continue` hook); it raises `LimitExceededError`
-    once the trailing run of unproductive turns reaches `turns`.
+    turn; it raises `LimitExceededError` once the trailing run of unproductive turns
+    reaches `turns`. Inspect handles that error like any other limit: the sample ends,
+    is scored on its messages so far, and is recorded with a limit of type "custom".
+
+    With `react()`, call it from the `on_continue` hook, which runs after each turn's
+    generation and tool calls:
+
+        limit = UnproductiveLoopLimit(turns=5, unproductive_tools=["think"])
+
+        async def on_continue(state: AgentState) -> bool:
+            limit.check(state)
+            return True
+
+        agent = react(tools=[bash(), python(), think()], on_continue=on_continue)
+
+    In a custom solver, call it after each `generate()` and tool execution:
+
+        @solver
+        def my_solver() -> Solver:
+            limit = UnproductiveLoopLimit(turns=5)
+
+            async def solve(state: TaskState, generate: Generate) -> TaskState:
+                while not state.completed:
+                    state = await generate(state, tool_calls="single")
+                    limit.check(state)
+                return state
+
+            return solve
+
+    The instance holds only configuration, so one can be shared across samples.
     """
 
     def __init__(self, turns: int, *, unproductive_tools: Collection[str] = ()) -> None:
