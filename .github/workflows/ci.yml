@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        inspect-ai: ["0.3.217", "0.3.233", "0.3.249", "latest"]
+    name: ty (inspect-ai ${{ matrix.inspect-ai }})
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+      - name: Pin inspect-ai
+        run: |
+          if [ "${{ matrix.inspect-ai }}" = "latest" ]; then
+            uv lock --upgrade-package inspect-ai
+          else
+            uv lock --upgrade-package "inspect-ai==${{ matrix.inspect-ai }}"
+          fi
+      - run: uv sync
+      - run: uv run ty check
