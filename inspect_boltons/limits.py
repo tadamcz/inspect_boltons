@@ -12,7 +12,7 @@ checked from the same hook:
 
     limits = [
         NoToolCallLimit(turns=100, unproductive_tools=["think"]),
-        RepeatedTextLimit(turns=5),
+        RepeatedTextLimit(turns=10),
     ]
 
     async def on_continue(state: AgentState) -> bool:
