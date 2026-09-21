@@ -1,4 +1,4 @@
-# inspect_boltons
+# Inspect boltons
 
 Reusable tools and utilities for [Inspect](https://github.com/UKGovernmentBEIS/inspect_ai). The name is a homage to the Python [boltons](https://github.com/mahmoud/boltons) library, which provides pure-Python utilities "in the same spirit as — and yet conspicuously missing from — the standard library". 
 
