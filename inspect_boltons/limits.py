@@ -98,7 +98,7 @@ class NoToolCallLimit:
 
 
 class RepeatedTextLimit:
-    """Stop a sample once the model has gone `turns` consecutive turns with no tool call and identical text.
+    """Stop a sample after `turns` consecutive turns with no tool call and identical text.
 
     A turn is an assistant message. The limit fires when the last `turns` assistant
     messages all have no tool calls and the same visible text. Reasoning content is
