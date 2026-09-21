@@ -39,9 +39,6 @@ def test_format_duration_compact() -> None:
     assert tools_mod._format_duration(3 * 3600 + 25 * 60) == "3h 25m"
 
 
-_HEADER = "Reaching any of the limits ends the task."
-
-
 async def test_resources_tool_tabulates_all_limits_with_header(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -59,7 +56,7 @@ async def test_resources_tool_tabulates_all_limits_with_header(
     )
     output = await resources()()
     assert output == (
-        f"{_HEADER}\n"
+        "Reaching any of the limits ends the task.\n"
         "\n"
         "| Resource   | Used   | Limit     |\n"
         "|------------|--------|-----------|\n"
@@ -85,7 +82,7 @@ async def test_resources_tool_reports_cost_in_usd(
     )
     output = await resources()()
     assert output == (
-        f"{_HEADER}\n"
+        "Reaching any of the limits ends the task.\n"
         "\n"
         "| Resource   | Used   | Limit   |\n"
         "|------------|--------|---------|\n"
@@ -112,7 +109,7 @@ async def test_resources_tool_handles_all_limits_unset(
     )
     output = await resources()()
     assert output == (
-        f"{_HEADER}\n"
+        "Reaching any of the limits ends the task.\n"
         "\n"
         "| Resource   | Used   | Limit   |\n"
         "|------------|--------|---------|\n"
