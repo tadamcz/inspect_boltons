@@ -27,10 +27,14 @@ class _FakeSampleLimits:
         working: _FakeLimit,
         token: _FakeLimit | None = None,
         cost: _FakeLimit | None = None,
+        message: _FakeLimit | None = None,
+        turn: _FakeLimit | None = None,
     ) -> None:
         # Default to "no limit set" for the spend limits not under test.
         self.token = token or _FakeLimit(usage=0, limit=None)
         self.cost = cost or _FakeLimit(usage=0, limit=None)
+        self.message = message or _FakeLimit(usage=0, limit=None)
+        self.turn = turn or _FakeLimit(usage=0, limit=None)
         self.working = working
 
 
@@ -54,6 +58,8 @@ async def test_resources_tool_lists_all_limits_with_header(
         "sample_limits",
         lambda: _FakeSampleLimits(
             token=_FakeLimit(usage=10_000, limit=1_000_000),
+            message=_FakeLimit(usage=12, limit=50),
+            turn=_FakeLimit(usage=6, limit=25),
             working=_FakeLimit(usage=3600, limit=129_600),
         ),
     )
@@ -62,6 +68,8 @@ async def test_resources_tool_lists_all_limits_with_header(
         f"{_HEADER}\n"
         "- Token cost: $0.00 used (no limit set)\n"
         "- Tokens: 10,000 used, 990,000 remaining (limit 1,000,000)\n"
+        "- Messages: 12 used, 38 remaining (limit 50)\n"
+        "- Turns: 6 used, 19 remaining (limit 25)\n"
         "- Time: 1h used, 35h remaining (limit 36h)"
     )
 
@@ -83,6 +91,8 @@ async def test_resources_tool_reports_cost_in_usd(
         f"{_HEADER}\n"
         "- Token cost: $1.50 used, $198.50 remaining (limit $200.00)\n"
         "- Tokens: 0 used (no limit set)\n"
+        "- Messages: 0 used (no limit set)\n"
+        "- Turns: 0 used (no limit set)\n"
         "- Time: 1h used, 71h remaining (limit 72h)"
     )
 
@@ -105,5 +115,7 @@ async def test_resources_tool_handles_all_limits_unset(
         f"{_HEADER}\n"
         "- Token cost: $0.00 used (no limit set)\n"
         "- Tokens: 500 used (no limit set)\n"
+        "- Messages: 0 used (no limit set)\n"
+        "- Turns: 0 used (no limit set)\n"
         "- Time: 2m used (no limit set)"
     )

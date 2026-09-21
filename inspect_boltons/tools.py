@@ -6,7 +6,7 @@ from inspect_ai.tool import Tool, tool
 from inspect_ai.util import Limit, sample_limits
 
 
-def _format_tokens(value: float) -> str:
+def _format_count(value: float) -> str:
     return f"{round(value):,}"
 
 
@@ -50,11 +50,13 @@ def resources() -> Tool:
     """A tool that reports the agent's limits and how much of each remains."""
 
     async def execute() -> str:
-        """Check your remaining limits (cost, tokens, time)."""
+        """Check your remaining limits (cost, tokens, messages, turns, time)."""
         limits = sample_limits()
         lines = [
             _resource_line("Token cost", limits.cost, _format_usd),
-            _resource_line("Tokens", limits.token, _format_tokens),
+            _resource_line("Tokens", limits.token, _format_count),
+            _resource_line("Messages", limits.message, _format_count),
+            _resource_line("Turns", limits.turn, _format_count),
             # We surface the *working*-time limit plainly as "Time".
             # The working-time vs. clock-time distinction is not relevant to an agent.
             _resource_line("Time", limits.working, _format_duration),

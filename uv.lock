@@ -908,7 +908,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "inspect-ai", specifier = ">=0.3.217" }]
+requires-dist = [{ name = "inspect-ai", specifier = ">=0.3.241" }]
 
 [package.metadata.requires-dev]
 dev = [
