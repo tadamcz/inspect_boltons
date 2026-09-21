@@ -98,13 +98,12 @@ class NoToolCallLimit:
 
 
 class RepeatedTextLimit:
-    """Stop a sample once the model has repeated the same text for `turns` consecutive turns.
+    """Stop a sample once the model has gone `turns` consecutive turns with no tool call and identical text.
 
-    A turn is an assistant message. Only turns with no tool calls take part: the
-    limit fires when the last `turns` assistant messages all have no tool calls and
-    identical text. Reasoning content is ignored, so a model whose visible reply
-    repeats while its thinking varies still trips the limit. Any turn with a tool
-    call resets the run.
+    A turn is an assistant message. The limit fires when the last `turns` assistant
+    messages all have no tool calls and the same visible text. Reasoning content is
+    ignored, so a model whose visible reply repeats while its thinking varies still
+    trips the limit. Any turn with a tool call, or with different text, resets the run.
 
     Call `check(state)` after each turn, as for `NoToolCallLimit`, whose docstring
     shows how to use both from a `react()` `on_continue` hook or a custom solver.
