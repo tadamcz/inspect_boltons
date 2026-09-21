@@ -10,7 +10,16 @@ from inspect_ai.solver import TaskState
 from inspect_ai.util import LimitExceededError
 
 
-class UnproductiveLoopLimit:
+def _assistant_turns(state: AgentState | TaskState) -> list[ChatMessageAssistant]:
+    return [m for m in state.messages if isinstance(m, ChatMessageAssistant)]
+
+
+def _raise_limit(count: int, limit: int, message: str) -> None:
+    transcript()._event(SampleLimitEvent(type="custom", limit=limit, message=message))
+    raise LimitExceededError("custom", value=count, limit=limit, message=message)
+
+
+class NoToolCallLimit:
     """Stop a sample once the model has gone `turns` consecutive turns without a tool call.
 
     A turn is an assistant message. A turn counts as productive if it calls any tool
@@ -20,12 +29,16 @@ class UnproductiveLoopLimit:
     is scored on its messages so far, and is recorded with a limit of type "custom".
 
     With `react()`, call it from the `on_continue` hook, which runs after each turn's
-    generation and tool calls:
+    generation and tool calls. Several limits can be checked from the same hook:
 
-        limit = UnproductiveLoopLimit(turns=100, unproductive_tools=["think"])
+        limits = [
+            NoToolCallLimit(turns=100, unproductive_tools=["think"]),
+            RepeatedTextLimit(turns=5),
+        ]
 
         async def on_continue(state: AgentState) -> bool:
-            limit.check(state)
+            for limit in limits:
+                limit.check(state)
             return True
 
         agent = react(tools=[bash(), python(), think()], on_continue=on_continue)
@@ -34,7 +47,7 @@ class UnproductiveLoopLimit:
 
         @solver
         def my_solver() -> Solver:
-            limit = UnproductiveLoopLimit(turns=100)
+            limit = NoToolCallLimit(turns=100)
 
             async def solve(state: TaskState, generate: Generate) -> TaskState:
                 while not state.completed:
@@ -61,9 +74,7 @@ class UnproductiveLoopLimit:
 
     def unproductive_turns(self, state: AgentState | TaskState) -> int:
         count = 0
-        for message in reversed(state.messages):
-            if not isinstance(message, ChatMessageAssistant):
-                continue
+        for message in reversed(_assistant_turns(state)):
             if self._productive(message):
                 break
             count += 1
@@ -78,13 +89,51 @@ class UnproductiveLoopLimit:
             if not self.unproductive_tools
             else f"a tool call other than {', '.join(sorted(self.unproductive_tools))}"
         )
-        message = (
+        _raise_limit(
+            count,
+            self.turns,
             f"Unproductive loop limit reached: {count:,} consecutive turns without "
-            f"{what}; limit: {self.turns:,}"
+            f"{what}; limit: {self.turns:,}",
         )
-        transcript()._event(
-            SampleLimitEvent(type="custom", limit=self.turns, message=message)
-        )
-        raise LimitExceededError(
-            "custom", value=count, limit=self.turns, message=message
+
+
+class RepeatedTextLimit:
+    """Stop a sample once the model has repeated the same text for `turns` consecutive turns.
+
+    A turn is an assistant message. Only turns with no tool calls take part: the
+    limit fires when the last `turns` assistant messages all have no tool calls and
+    identical text. Reasoning content is ignored, so a model whose visible reply
+    repeats while its thinking varies still trips the limit. Any turn with a tool
+    call resets the run.
+
+    Call `check(state)` after each turn, as for `NoToolCallLimit`, whose docstring
+    shows how to use both from a `react()` `on_continue` hook or a custom solver.
+    """
+
+    def __init__(self, turns: int) -> None:
+        if turns < 2:
+            raise ValueError(f"turns must be at least 2: {turns}")
+        self.turns = turns
+
+    def repeated_turns(self, state: AgentState | TaskState) -> int:
+        messages = _assistant_turns(state)
+        if not messages or messages[-1].tool_calls:
+            return 0
+        text = messages[-1].text
+        count = 0
+        for message in reversed(messages):
+            if message.tool_calls or message.text != text:
+                break
+            count += 1
+        return count
+
+    def check(self, state: AgentState | TaskState) -> None:
+        count = self.repeated_turns(state)
+        if count < self.turns:
+            return
+        _raise_limit(
+            count,
+            self.turns,
+            f"Repeated text limit reached: {count:,} consecutive turns with no tool "
+            f"call and identical text; limit: {self.turns:,}",
         )
