@@ -34,10 +34,12 @@ def _format_duration(seconds: float) -> str:
     return " ".join(parts)
 
 
+def _format_limit(limit: Limit, fmt: Callable[[float], str]) -> str:
+    return "none" if limit.limit is None else fmt(limit.limit)
+
+
 def _resource_row(label: str, limit: Limit, fmt: Callable[[float], str]) -> list[str]:
-    used = fmt(limit.usage)
-    cap = "none" if limit.limit is None else fmt(limit.limit)
-    return [label, used, cap]
+    return [label, fmt(limit.usage), _format_limit(limit, fmt)]
 
 
 @tool(name="resources")
@@ -50,7 +52,12 @@ def resources() -> Tool:
         rows = [
             _resource_row("Token cost", limits.cost, _format_usd),
             _resource_row("Tokens", limits.token, _format_count),
-            _resource_row("Messages", limits.message, _format_count),
+            # As of Inspect 0.3.266, reading `usage` on a live message limit raises
+            # NotImplementedError: Inspect only tracks the message count on the task or
+            # agent state, which a tool cannot reliably access (the sample's TaskState
+            # is synced from the agent's state only after the agent finishes). So we
+            # show the limit but not the usage.
+            ["Messages", "?", _format_limit(limits.message, _format_count)],
             _resource_row("Turns", limits.turn, _format_count),
             # We surface the *working*-time limit plainly as "Time".
             # The working-time vs. clock-time distinction is not relevant to an agent.
