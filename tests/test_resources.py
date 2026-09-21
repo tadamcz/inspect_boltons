@@ -7,17 +7,11 @@ from inspect_boltons.tools import resources
 
 
 class _FakeLimit:
-    """Stand-in for inspect_ai.util.Limit with the three fields the tool reads."""
+    """Stand-in for inspect_ai.util.Limit with the fields the tool reads."""
 
     def __init__(self, *, usage: float, limit: float | None) -> None:
         self.usage = usage
         self.limit = limit
-
-    @property
-    def remaining(self) -> float | None:
-        if self.limit is None:
-            return None
-        return self.limit - self.usage
 
 
 class _FakeSampleLimits:
@@ -30,7 +24,7 @@ class _FakeSampleLimits:
         message: _FakeLimit | None = None,
         turn: _FakeLimit | None = None,
     ) -> None:
-        # Default to "no limit set" for the spend limits not under test.
+        # Default to "no limit set" for the limits not under test.
         self.token = token or _FakeLimit(usage=0, limit=None)
         self.cost = cost or _FakeLimit(usage=0, limit=None)
         self.message = message or _FakeLimit(usage=0, limit=None)
@@ -48,11 +42,11 @@ def test_format_duration_compact() -> None:
 _HEADER = "Reaching any of the limits ends the task."
 
 
-async def test_resources_tool_lists_all_limits_with_header(
+async def test_resources_tool_tabulates_all_limits_with_header(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # All limits are always listed under the "any one ends the task" header. Here
-    # a token-limited run (no cost limit): Token cost reads "(no limit set)".
+    # a token-limited run (no cost limit): Token cost's limit reads "none".
     monkeypatch.setattr(
         tools_mod,
         "sample_limits",
@@ -66,18 +60,21 @@ async def test_resources_tool_lists_all_limits_with_header(
     output = await resources()()
     assert output == (
         f"{_HEADER}\n"
-        "- Token cost: $0.00 used (no limit set)\n"
-        "- Tokens: 10,000 used, 990,000 remaining (limit 1,000,000)\n"
-        "- Messages: 12 used, 38 remaining (limit 50)\n"
-        "- Turns: 6 used, 19 remaining (limit 25)\n"
-        "- Time: 1h used, 35h remaining (limit 36h)"
+        "\n"
+        "| Resource   | Used   | Limit     |\n"
+        "|------------|--------|-----------|\n"
+        "| Token cost | $0.00  | none      |\n"
+        "| Tokens     | 10,000 | 1,000,000 |\n"
+        "| Messages   | 12     | 50        |\n"
+        "| Turns      | 6      | 25        |\n"
+        "| Time       | 1h     | 36h       |"
     )
 
 
 async def test_resources_tool_reports_cost_in_usd(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # A cost-limited run (no token limit): Token cost shows USD, Tokens "(no limit set)".
+    # A cost-limited run (no token limit): Token cost shows USD, Tokens' limit "none".
     monkeypatch.setattr(
         tools_mod,
         "sample_limits",
@@ -89,19 +86,22 @@ async def test_resources_tool_reports_cost_in_usd(
     output = await resources()()
     assert output == (
         f"{_HEADER}\n"
-        "- Token cost: $1.50 used, $198.50 remaining (limit $200.00)\n"
-        "- Tokens: 0 used (no limit set)\n"
-        "- Messages: 0 used (no limit set)\n"
-        "- Turns: 0 used (no limit set)\n"
-        "- Time: 1h used, 71h remaining (limit 72h)"
+        "\n"
+        "| Resource   | Used   | Limit   |\n"
+        "|------------|--------|---------|\n"
+        "| Token cost | $1.50  | $200.00 |\n"
+        "| Tokens     | 0      | none    |\n"
+        "| Messages   | 0      | none    |\n"
+        "| Turns      | 0      | none    |\n"
+        "| Time       | 1h     | 72h     |"
     )
 
 
 async def test_resources_tool_handles_all_limits_unset(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # With nothing configured, every line reads "(no limit set)" -- the header
-    # makes clear that an unset dimension simply doesn't bound the run.
+    # With nothing configured, every limit reads "none" -- the header makes clear
+    # that an unset dimension simply doesn't bound the run.
     monkeypatch.setattr(
         tools_mod,
         "sample_limits",
@@ -113,9 +113,12 @@ async def test_resources_tool_handles_all_limits_unset(
     output = await resources()()
     assert output == (
         f"{_HEADER}\n"
-        "- Token cost: $0.00 used (no limit set)\n"
-        "- Tokens: 500 used (no limit set)\n"
-        "- Messages: 0 used (no limit set)\n"
-        "- Turns: 0 used (no limit set)\n"
-        "- Time: 2m used (no limit set)"
+        "\n"
+        "| Resource   | Used   | Limit   |\n"
+        "|------------|--------|---------|\n"
+        "| Token cost | $0.00  | none    |\n"
+        "| Tokens     | 500    | none    |\n"
+        "| Messages   | 0      | none    |\n"
+        "| Turns      | 0      | none    |\n"
+        "| Time       | 2m     | none    |"
     )

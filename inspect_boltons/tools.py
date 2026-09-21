@@ -4,6 +4,7 @@ from typing import Callable
 
 from inspect_ai.tool import Tool, tool
 from inspect_ai.util import Limit, sample_limits
+from tabulate import tabulate
 
 
 def _format_count(value: float) -> str:
@@ -33,35 +34,35 @@ def _format_duration(seconds: float) -> str:
     return " ".join(parts)
 
 
-def _resource_line(label: str, limit: Limit, fmt: Callable[[float], str]) -> str:
+def _resource_row(label: str, limit: Limit, fmt: Callable[[float], str]) -> list[str]:
     used = fmt(limit.usage)
-    if limit.limit is None:
-        return f"- {label}: {used} used (no limit set)"
-    # remaining is non-None whenever limit is non-None (Limit.remaining).
-    assert limit.remaining is not None
-    return (
-        f"- {label}: {used} used, {fmt(limit.remaining)} remaining "
-        f"(limit {fmt(limit.limit)})"
-    )
+    cap = "none" if limit.limit is None else fmt(limit.limit)
+    return [label, used, cap]
 
 
 @tool(name="resources")
 def resources() -> Tool:
-    """A tool that reports the agent's limits and how much of each remains."""
+    """A tool that reports the agent's limits and how much of each has been used."""
 
     async def execute() -> str:
-        """Check your remaining limits (cost, tokens, messages, turns, time)."""
+        """Check your limits (cost, tokens, messages, turns, time) and how much of each you have used."""
         limits = sample_limits()
-        lines = [
-            _resource_line("Token cost", limits.cost, _format_usd),
-            _resource_line("Tokens", limits.token, _format_count),
-            _resource_line("Messages", limits.message, _format_count),
-            _resource_line("Turns", limits.turn, _format_count),
+        rows = [
+            _resource_row("Token cost", limits.cost, _format_usd),
+            _resource_row("Tokens", limits.token, _format_count),
+            _resource_row("Messages", limits.message, _format_count),
+            _resource_row("Turns", limits.turn, _format_count),
             # We surface the *working*-time limit plainly as "Time".
             # The working-time vs. clock-time distinction is not relevant to an agent.
-            _resource_line("Time", limits.working, _format_duration),
+            _resource_row("Time", limits.working, _format_duration),
         ]
+        table = tabulate(
+            rows,
+            headers=["Resource", "Used", "Limit"],
+            tablefmt="github",
+            disable_numparse=True,
+        )
         header = "Reaching any of the limits ends the task."
-        return "\n".join([header, *lines])
+        return "\n".join([header, "", table])
 
     return execute

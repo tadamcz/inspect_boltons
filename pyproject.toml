@@ -7,6 +7,7 @@ license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
     "inspect-ai>=0.3.241",
+    "tabulate>=0.10.0",
 ]
 
 [dependency-groups]
