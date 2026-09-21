@@ -1,3 +1,45 @@
+"""Limits that stop a sample when the model is looping unproductively.
+
+Each limit is a plain object with a `check(state)` method that takes an `AgentState`
+or `TaskState`, inspects the trailing assistant turns in `state.messages`, and raises
+`LimitExceededError` when its criterion is met. Inspect handles that error like any
+other limit: the sample ends, is scored on its messages so far, and is recorded with
+a limit of type "custom".
+
+Call `check(state)` after each turn. With `react()`, do so from the `on_continue`
+hook, which runs after each turn's generation and tool calls. Several limits can be
+checked from the same hook:
+
+    limits = [
+        NoToolCallLimit(turns=100, unproductive_tools=["think"]),
+        RepeatedTextLimit(turns=5),
+    ]
+
+    async def on_continue(state: AgentState) -> bool:
+        for limit in limits:
+            limit.check(state)
+        return True
+
+    agent = react(tools=[bash(), python(), think()], on_continue=on_continue)
+
+In a custom solver, call it after each `generate()` and tool execution:
+
+    @solver
+    def my_solver() -> Solver:
+        limit = NoToolCallLimit(turns=100)
+
+        async def solve(state: TaskState, generate: Generate) -> TaskState:
+            while not state.completed:
+                state = await generate(state, tool_calls="single")
+                limit.check(state)
+            return state
+
+        return solve
+
+The limit objects hold only configuration, so one instance can be shared across
+samples.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Collection
@@ -23,41 +65,7 @@ class NoToolCallLimit:
     """Stop a sample once the model has gone `turns` consecutive turns without a tool call.
 
     A turn is an assistant message. A turn counts as productive if it calls any tool
-    other than those named in `unproductive_tools`. Call `check(state)` after each
-    turn; it raises `LimitExceededError` once the trailing run of unproductive turns
-    reaches `turns`. Inspect handles that error like any other limit: the sample ends,
-    is scored on its messages so far, and is recorded with a limit of type "custom".
-
-    With `react()`, call it from the `on_continue` hook, which runs after each turn's
-    generation and tool calls. Several limits can be checked from the same hook:
-
-        limits = [
-            NoToolCallLimit(turns=100, unproductive_tools=["think"]),
-            RepeatedTextLimit(turns=5),
-        ]
-
-        async def on_continue(state: AgentState) -> bool:
-            for limit in limits:
-                limit.check(state)
-            return True
-
-        agent = react(tools=[bash(), python(), think()], on_continue=on_continue)
-
-    In a custom solver, call it after each `generate()` and tool execution:
-
-        @solver
-        def my_solver() -> Solver:
-            limit = NoToolCallLimit(turns=100)
-
-            async def solve(state: TaskState, generate: Generate) -> TaskState:
-                while not state.completed:
-                    state = await generate(state, tool_calls="single")
-                    limit.check(state)
-                return state
-
-            return solve
-
-    The instance holds only configuration, so one can be shared across samples.
+    other than those named in `unproductive_tools`; any productive turn resets the run.
     """
 
     def __init__(self, turns: int, *, unproductive_tools: Collection[str] = ()) -> None:
@@ -104,9 +112,6 @@ class RepeatedTextLimit:
     messages all have no tool calls and the same visible text. Reasoning content is
     ignored, so a model whose visible reply repeats while its thinking varies still
     trips the limit. Any turn with a tool call, or with different text, resets the run.
-
-    Call `check(state)` after each turn, as for `NoToolCallLimit`, whose docstring
-    shows how to use both from a `react()` `on_continue` hook or a custom solver.
     """
 
     def __init__(self, turns: int) -> None:
