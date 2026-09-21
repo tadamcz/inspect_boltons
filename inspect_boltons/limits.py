@@ -22,7 +22,7 @@ class UnproductiveLoopLimit:
     With `react()`, call it from the `on_continue` hook, which runs after each turn's
     generation and tool calls:
 
-        limit = UnproductiveLoopLimit(turns=5, unproductive_tools=["think"])
+        limit = UnproductiveLoopLimit(turns=100, unproductive_tools=["think"])
 
         async def on_continue(state: AgentState) -> bool:
             limit.check(state)
@@ -34,7 +34,7 @@ class UnproductiveLoopLimit:
 
         @solver
         def my_solver() -> Solver:
-            limit = UnproductiveLoopLimit(turns=5)
+            limit = UnproductiveLoopLimit(turns=100)
 
             async def solve(state: TaskState, generate: Generate) -> TaskState:
                 while not state.completed:
