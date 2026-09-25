@@ -21,7 +21,6 @@ Usage:
     ibolt plain logs/some-dir/ -o /tmp/out
     ibolt plain logs/run.eval --list-samples
     ibolt plain logs/run.eval -s some_sample_id
-    ibolt plain logs/some-dir/ --parallel-evals --parallel-samples 4
 """
 
 from __future__ import annotations
@@ -31,7 +30,6 @@ import re
 import sys
 from collections import Counter
 from collections.abc import Callable
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import TextIO
 
@@ -367,8 +365,6 @@ def extract_eval_file(
     eval_path: Path,
     out_dir: Path,
     sample_ids: set[str] | None = None,
-    *,
-    sample_workers: int = 1,
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -381,31 +377,5 @@ def extract_eval_file(
         f"eval: {scores_path.stat().st_size:,} bytes -> {scores_path}", file=sys.stderr
     )
 
-    specs = _sample_specs(eval_path, sample_ids)
-    workers = min(sample_workers, len(specs))
-
-    if workers > 1:
-        with ProcessPoolExecutor(max_workers=workers) as pool:
-            futures = [
-                pool.submit(
-                    _extract_sample,
-                    eval_path,
-                    out_dir,
-                    stem,
-                    sid,
-                    epoch,
-                )
-                for stem, sid, epoch in specs
-            ]
-            for future in futures:
-                future.result()
-        return
-
-    for stem, sid, epoch in specs:
-        _extract_sample(
-            eval_path,
-            out_dir,
-            stem,
-            sid,
-            epoch,
-        )
+    for stem, sid, epoch in _sample_specs(eval_path, sample_ids):
+        _extract_sample(eval_path, out_dir, stem, sid, epoch)
