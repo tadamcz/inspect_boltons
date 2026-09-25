@@ -29,9 +29,7 @@ import json
 import re
 import sys
 from collections import Counter
-from collections.abc import Callable
 from pathlib import Path
-from typing import TextIO
 
 from inspect_ai.log import (
     EvalSample,
@@ -234,10 +232,12 @@ def _enumerate_messages(messages: list[ChatMessage]) -> list[tuple[int, ChatMess
     return results
 
 
-def write_transcript(messages: list[ChatMessage], out: TextIO) -> None:
+def format_transcript(messages: list[ChatMessage]) -> str:
     primary_model = get_primary_model(messages)
-    for i, msg in _enumerate_messages(messages):
-        out.write(format_message(msg, i, primary_model) + "\n\n")
+    return "".join(
+        format_message(msg, i, primary_model) + "\n\n"
+        for i, msg in _enumerate_messages(messages)
+    )
 
 
 def compaction_summaries(messages: list[ChatMessage]) -> list[tuple[int, ChatMessage]]:
@@ -248,34 +248,31 @@ def compaction_summaries(messages: list[ChatMessage]) -> list[tuple[int, ChatMes
     ]
 
 
-def write_compactions(summaries: list[tuple[int, ChatMessage]], out: TextIO) -> None:
-    for seq, (idx, msg) in enumerate(summaries, 1):
-        body = _extract_summary_body(extract_text(msg))
-        out.write(
-            f"--- Compaction {seq}/{len(summaries)} (after message {idx + 1}) ---\n"
-            f"{body}\n\n"
-        )
+def format_compactions(summaries: list[tuple[int, ChatMessage]]) -> str:
+    return "".join(
+        f"--- Compaction {seq}/{len(summaries)} (after message {idx + 1}) ---\n"
+        f"{_extract_summary_body(extract_text(msg))}\n\n"
+        for seq, (idx, msg) in enumerate(summaries, 1)
+    )
 
 
-def write_scores(sample: EvalSample, out: TextIO) -> None:
+def format_scores(sample: EvalSample) -> str:
     if not sample.scores:
-        return
-    out.write("=== SCORES ===\n")
+        return ""
+    lines = ["=== SCORES ==="]
     for scorer_name, score in sample.scores.items():
-        out.write(f"{scorer_name}: {score.value}\n")
+        lines.append(f"{scorer_name}: {score.value}")
         if score.explanation:
-            for line in score.explanation.splitlines():
-                out.write(f"  {line}\n")
-    out.write("\n")
+            lines.extend(f"  {line}" for line in score.explanation.splitlines())
+    return "\n".join(lines) + "\n\n"
 
 
-def _write_json(payload: object, out: TextIO) -> None:
-    json.dump(payload, out, indent=2, ensure_ascii=False, default=str)
-    out.write("\n")
+def _to_json(payload: object) -> str:
+    return json.dumps(payload, indent=2, ensure_ascii=False, default=str) + "\n"
 
 
-def write_scores_json(sample: EvalSample, out: TextIO) -> None:
-    _write_json(
+def format_scores_json(sample: EvalSample) -> str:
+    return _to_json(
         {
             name: {
                 "value": score.value,
@@ -283,14 +280,13 @@ def write_scores_json(sample: EvalSample, out: TextIO) -> None:
                 "metadata": score.metadata,
             }
             for name, score in (sample.scores or {}).items()
-        },
-        out,
+        }
     )
 
 
-def write_info(sample: EvalSample, out: TextIO) -> None:
+def format_info(sample: EvalSample) -> str:
     dumped = sample.model_dump(include={"error", "limit", "model_usage"}, mode="json")
-    _write_json(
+    return _to_json(
         {
             "id": str(sample.id),
             "epoch": sample.epoch,
@@ -299,9 +295,13 @@ def write_info(sample: EvalSample, out: TextIO) -> None:
             "error": dumped["error"],
             "limit": dumped["limit"],
             "model_usage": dumped["model_usage"],
-        },
-        out,
+        }
     )
+
+
+def _write(path: Path, text: str, label: str) -> None:
+    path.write_text(text)
+    print(f"{label}: {path.stat().st_size:,} bytes -> {path}", file=sys.stderr)
 
 
 def list_samples(eval_path: Path) -> list[str]:
@@ -343,22 +343,15 @@ def _extract_sample(
     sample_dir = out_dir / stem
     sample_dir.mkdir(parents=True, exist_ok=True)
 
-    def write(name: str, writer: Callable[[TextIO], None]) -> None:
-        path = sample_dir / name
-        with open(path, "w") as f:
-            writer(f)
-        print(f"{stem}: {path.stat().st_size:,} bytes -> {path}", file=sys.stderr)
-
-    write("info.json", lambda f: write_info(sample, f))
-
     messages = main_loop_messages(sample)
-    write("messages.txt", lambda f: write_transcript(messages, f))
     summaries = compaction_summaries(messages)
-    if summaries:
-        write("compactions.txt", lambda f: write_compactions(summaries, f))
 
-    write("scores.txt", lambda f: write_scores(sample, f))
-    write("scores.json", lambda f: write_scores_json(sample, f))
+    _write(sample_dir / "info.json", format_info(sample), stem)
+    _write(sample_dir / "messages.txt", format_transcript(messages), stem)
+    if summaries:
+        _write(sample_dir / "compactions.txt", format_compactions(summaries), stem)
+    _write(sample_dir / "scores.txt", format_scores(sample), stem)
+    _write(sample_dir / "scores.json", format_scores_json(sample), stem)
 
 
 def extract_eval_file(
@@ -370,12 +363,7 @@ def extract_eval_file(
 
     log = read_eval_log(str(eval_path), header_only=True)
     scores = log.results.model_dump(mode="json")["scores"] if log.results else []
-    scores_path = out_dir / "scores.json"
-    with open(scores_path, "w") as f:
-        _write_json(scores, f)
-    print(
-        f"eval: {scores_path.stat().st_size:,} bytes -> {scores_path}", file=sys.stderr
-    )
+    _write(out_dir / "scores.json", _to_json(scores), "eval")
 
     for stem, sid, epoch in _sample_specs(eval_path, sample_ids):
         _extract_sample(eval_path, out_dir, stem, sid, epoch)
