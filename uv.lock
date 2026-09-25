@@ -896,6 +896,7 @@ name = "inspect-boltons"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "inspect-ai" },
     { name = "tabulate" },
 ]
@@ -910,6 +911,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.5.0" },
     { name = "inspect-ai", specifier = ">=0.3.241" },
     { name = "tabulate", specifier = ">=0.10.0" },
 ]
