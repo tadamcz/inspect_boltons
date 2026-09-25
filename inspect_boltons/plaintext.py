@@ -16,11 +16,11 @@ Each sample gets its own directory containing `info.json`, `messages.txt`,
 
 Usage:
 
-    ibolt plaintext logs/run.eval
-    ibolt plaintext logs/some-dir/ -o /tmp/out
-    ibolt plaintext logs/run.eval --list-samples
-    ibolt plaintext logs/run.eval -s some_sample_id
-    ibolt plaintext logs/some-dir/ --parallel-evals --parallel-samples 4
+    ibolt plain logs/run.eval
+    ibolt plain logs/some-dir/ -o /tmp/out
+    ibolt plain logs/run.eval --list-samples
+    ibolt plain logs/run.eval -s some_sample_id
+    ibolt plain logs/some-dir/ --parallel-evals --parallel-samples 4
 """
 
 from __future__ import annotations

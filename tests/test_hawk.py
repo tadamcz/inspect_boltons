@@ -62,7 +62,7 @@ def test_dl_deletes_superseded_retries_and_extracts_plaintext(
     monkeypatch.setattr(hawk, "download_with_hawk", fake_download)
     root = tmp_path / "out"
     result = CliRunner().invoke(
-        main, ["dl", "es", "--output-root", str(root), "--plaintext"]
+        main, ["dl", "es", "--output-root", str(root), "--plain"]
     )
     assert result.exit_code == 0, result.output
 

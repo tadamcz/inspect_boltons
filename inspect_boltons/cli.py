@@ -83,7 +83,7 @@ def main() -> None:
     is_flag=True,
     help="Extract only full message transcripts (skip compaction summaries).",
 )
-def plaintext(
+def plain(
     eval_files: tuple[Path, ...],
     output_dir: Path | None,
     samples: tuple[str, ...],
@@ -169,10 +169,10 @@ def plaintext(
     help="Directory under which <eval-set-id>/ will be created.",
 )
 @click.option(
-    "--plaintext",
+    "--plain",
     "extract_plaintext",
     is_flag=True,
-    help="After downloading, run `ibolt plaintext` on the destination directory.",
+    help="After downloading, run `ibolt plain` on the destination directory.",
 )
 @click.option(
     "--all",
@@ -223,4 +223,4 @@ def dl(
     click.echo(f"Done. Files saved to {dest_dir}")
     if extract_plaintext:
         click.echo(f"\nExtracting plaintext from .eval files in {dest_dir} ...")
-        ctx.invoke(plaintext, eval_files=(dest_dir,), parallel_samples=HALF_CPUS)
+        ctx.invoke(plain, eval_files=(dest_dir,), parallel_samples=HALF_CPUS)
