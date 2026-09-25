@@ -5,6 +5,7 @@ from pathlib import Path
 
 import click
 
+from inspect_boltons.hawk import download_eval_set
 from inspect_boltons.plaintext import (
     default_output_dir,
     extract_eval_file,
@@ -151,3 +152,75 @@ def plaintext(
         if collection_mode:
             click.echo(f"Extracting {eval_path} -> {out_dir}", err=True)
         extract(eval_path, out_dir)
+
+
+@main.command()
+@click.argument("eval_set_id")
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be downloaded without downloading.",
+)
+@click.option(
+    "--output-root",
+    type=click.Path(file_okay=False, path_type=Path),
+    default=Path("logs"),
+    show_default=True,
+    help="Directory under which <eval-set-id>/ will be created.",
+)
+@click.option(
+    "--plaintext",
+    "extract_plaintext",
+    is_flag=True,
+    help="After downloading, run `ibolt plaintext` on the destination directory.",
+)
+@click.option(
+    "--all",
+    "all_files",
+    is_flag=True,
+    help="Download all .eval files, including superseded retries for the same task.",
+)
+@click.option(
+    "--force-most-tokens-on-all-error",
+    is_flag=True,
+    help=(
+        "If every retry for a task is status=error/unreadable, keep the .eval that "
+        "used the most tokens instead of failing. Use only for intentional recovery "
+        "of broken eval-sets."
+    ),
+)
+@click.pass_context
+def dl(
+    ctx: click.Context,
+    eval_set_id: str,
+    dry_run: bool,
+    output_root: Path,
+    extract_plaintext: bool,
+    all_files: bool,
+    force_most_tokens_on_all_error: bool,
+) -> None:
+    """Download the logs of a Hawk eval-set.
+
+    Superseded retries are dropped unless --all is given: per task, the log with
+    status started/success is kept, as in the log viewer.
+    """
+    dest_dir = output_root / eval_set_id
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    download_eval_set(
+        eval_set_id,
+        dest_dir,
+        dry_run=dry_run,
+        all_files=all_files,
+        force_most_tokens_on_all_error=force_most_tokens_on_all_error,
+    )
+
+    if dry_run:
+        if extract_plaintext:
+            click.echo("Dry run: skipping plaintext extraction.")
+        return
+
+    click.echo(f"Done. Files saved to {dest_dir}")
+    if extract_plaintext:
+        click.echo(f"\nExtracting plaintext from .eval files in {dest_dir} ...")
+        ctx.invoke(plaintext, eval_files=(dest_dir,), parallel_samples=HALF_CPUS)

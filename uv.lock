@@ -899,6 +899,7 @@ dependencies = [
     { name = "click" },
     { name = "inspect-ai" },
     { name = "tabulate" },
+    { name = "zstandard" },
 ]
 
 [package.dev-dependencies]
@@ -914,6 +915,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.5.0" },
     { name = "inspect-ai", specifier = ">=0.3.241" },
     { name = "tabulate", specifier = ">=0.10.0" },
+    { name = "zstandard", specifier = ">=0.25.0" },
 ]
 
 [package.metadata.requires-dev]
