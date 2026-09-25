@@ -38,6 +38,7 @@ from inspect_ai.log import (
     read_eval_log,
     read_eval_log_sample,
     read_eval_log_sample_summaries,
+    resolve_sample_attachments,
 )
 from inspect_ai.model import (
     ChatMessage,
@@ -335,13 +336,8 @@ def _extract_sample(
     sample_id: str | int,
     epoch: int,
 ) -> None:
-    # As of inspect_ai 0.3.266, "core" (the default for resolve_sample_attachments)
-    # ends by model_dump-ing the whole sample to find attachments still referenced
-    # by ModelEvent.call. Each ModelEvent's input is the conversation so far, so the
-    # dump is quadratic in conversation length and dominates read time for long
-    # agent runs. "full" skips that pass.
-    sample = read_eval_log_sample(
-        str(eval_path), id=sample_id, epoch=epoch, resolve_attachments="full"
+    sample = resolve_sample_attachments(
+        read_eval_log_sample(str(eval_path), id=sample_id, epoch=epoch)
     )
 
     sample_dir = out_dir / stem
