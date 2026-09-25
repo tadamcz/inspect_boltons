@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import zipfile
 from pathlib import Path
 
 import click
@@ -24,6 +25,25 @@ def test_unreadable_header_has_no_status(tmp_path: Path) -> None:
     path.write_bytes(b"not a zip")
     f = read_eval_file(path)
     assert f == EvalFile(name=path.name, task_id="abc123", status=None)
+
+
+def test_truncated_eval_file_has_no_status(eval_path: Path, tmp_path: Path) -> None:
+    path = tmp_path / "2026-01-01_task_abc123.eval"
+    data = eval_path.read_bytes()
+    path.write_bytes(data[: len(data) // 2])
+    f = read_eval_file(path)
+    assert f == EvalFile(name=path.name, task_id="abc123", status=None)
+
+
+def test_in_progress_eval_file_is_started(eval_path: Path, tmp_path: Path) -> None:
+    path = tmp_path / eval_path.name
+    with zipfile.ZipFile(eval_path) as src, zipfile.ZipFile(path, "w") as dst:
+        for info in src.infolist():
+            if info.filename != "header.json":
+                dst.writestr(info, src.read(info))
+    f = read_eval_file(path)
+    assert f.status == "started"
+    assert f.task_id == read_eval_file(eval_path).task_id
 
 
 def test_keeps_newest_valid_log_per_task() -> None:

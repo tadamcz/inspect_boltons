@@ -7,21 +7,18 @@ log whose status is started/success is kept, breaking ties by descending filenam
 
 from __future__ import annotations
 
-import io
-import json
 import re
 import shutil
 import struct
 import subprocess
 import sys
-import zipfile
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, Any
 
 import click
 import zstandard
+from inspect_ai.log import read_eval_log
 
 _VALID_STATUSES = ("started", "success")
 
@@ -51,42 +48,18 @@ def _task_id_from_filename(name: str) -> str:
     return m.group(1) if m else name
 
 
-def read_eval_header_dict(fileobj: IO[bytes]) -> dict[str, Any]:
-    """Parse header.json out of an Inspect .eval file (a zstd-compressed zip)."""
-    z = zipfile.ZipFile(fileobj)
-    info = z.getinfo("header.json")
-    fileobj.seek(info.header_offset)
-    local = fileobj.read(30)
-    name_len = struct.unpack("<H", local[26:28])[0]
-    extra_len = struct.unpack("<H", local[28:30])[0]
-    fileobj.seek(info.header_offset + 30 + name_len + extra_len)
-    raw = fileobj.read(info.compress_size)
-    if info.compress_type == zipfile.ZIP_STORED:
-        data = raw
-    else:
-        data = zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw)).read()
-    return json.loads(data)
-
-
 def read_eval_file(path: Path) -> EvalFile:
     name = path.name
     try:
-        with path.open("rb") as fileobj:
-            header = read_eval_header_dict(fileobj)
-    except (
-        zipfile.BadZipFile,
-        KeyError,
-        struct.error,
-        zstandard.ZstdError,
-        ValueError,
-    ) as exc:
+        log = read_eval_log(path, header_only=True)
+    except (ValueError, KeyError, struct.error, zstandard.ZstdError) as exc:
         click.echo(f"  Warning: could not read header from {name}: {exc}", err=True)
         return EvalFile(name=name, task_id=_task_id_from_filename(name), status=None)
     return EvalFile(
         name=name,
-        task_id=header["eval"]["task_id"],
-        status=header["status"],
-        tokens=sum(u["total_tokens"] for u in header["stats"]["model_usage"].values()),
+        task_id=log.eval.task_id,
+        status=log.status,
+        tokens=sum(u.total_tokens for u in log.stats.model_usage.values()),
     )
 
 
