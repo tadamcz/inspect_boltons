@@ -73,16 +73,6 @@ def main() -> None:
         "memory, so lower N if large runs exhaust RAM."
     ),
 )
-@click.option(
-    "--compaction-summaries",
-    is_flag=True,
-    help="Extract only compaction summaries (condensed progress view).",
-)
-@click.option(
-    "--messages-only",
-    is_flag=True,
-    help="Extract only full message transcripts (skip compaction summaries).",
-)
 def plain(
     eval_files: tuple[Path, ...],
     output_dir: Path | None,
@@ -90,18 +80,11 @@ def plain(
     list_only: bool,
     parallel_evals: int,
     parallel_samples: int,
-    compaction_summaries: bool,
-    messages_only: bool,
 ) -> None:
     """Extract agent transcripts from Inspect .eval logs into plain text.
 
     EVAL_FILES are .eval files or directories of .eval files.
     """
-    if compaction_summaries and messages_only:
-        raise click.UsageError(
-            "--compaction-summaries and --messages-only are mutually exclusive."
-        )
-
     collection_mode = len(eval_files) > 1 or any(p.is_dir() for p in eval_files)
 
     eval_paths: list[Path] = []
@@ -129,8 +112,6 @@ def plain(
     extract = partial(
         extract_eval_file,
         sample_ids=set(samples) if samples else None,
-        compactions=not messages_only,
-        messages=not compaction_summaries,
         sample_workers=parallel_samples,
     )
     eval_workers = min(parallel_evals, len(tasks))

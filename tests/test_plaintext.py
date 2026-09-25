@@ -22,7 +22,6 @@ def test_extracts_transcript(eval_path: Path, tmp_path: Path) -> None:
     assert json.loads((out / "scores.json").read_text())[0]["name"] == "includes"
     sample_dir = out / "s1"
     assert sorted(p.name for p in sample_dir.iterdir()) == [
-        "compactions.txt",
         "info.json",
         "messages.txt",
         "scores.json",
@@ -44,19 +43,7 @@ def test_extracts_transcript(eval_path: Path, tmp_path: Path) -> None:
 
 def test_directory_input_uses_subdirectories(eval_path: Path, tmp_path: Path) -> None:
     out = tmp_path / "out"
-    result = CliRunner().invoke(
-        main, ["plain", str(eval_path.parent), "-o", str(out), "--messages-only"]
-    )
+    result = CliRunner().invoke(main, ["plain", str(eval_path.parent), "-o", str(out)])
     assert result.exit_code == 0, result.output
     sample_dir = out / eval_path.stem / "s1"
     assert (sample_dir / "messages.txt").exists()
-    assert not (sample_dir / "compactions.txt").exists()
-
-
-def test_mode_flags_are_mutually_exclusive(eval_path: Path) -> None:
-    result = CliRunner().invoke(
-        main,
-        ["plain", str(eval_path), "--messages-only", "--compaction-summaries"],
-    )
-    assert result.exit_code == 2
-    assert "mutually exclusive" in result.output

@@ -11,8 +11,9 @@ Turns nested in a further `agent` span are dropped. For a plain `react` loop the
 are no subagents, so everything is kept.
 
 Each sample gets its own directory containing `info.json`, `messages.txt`,
-`compactions.txt`, `scores.txt` and `scores.json`. The eval-level scores go in a
-`scores.json` alongside the sample directories.
+`scores.txt`, `scores.json` and, if the transcript contains compaction summaries,
+`compactions.txt`. The eval-level scores go in a `scores.json` alongside the sample
+directories.
 
 Usage:
 
@@ -241,15 +242,15 @@ def write_transcript(messages: list[ChatMessage], out: TextIO) -> None:
         out.write(format_message(msg, i, primary_model) + "\n\n")
 
 
-def write_compactions(messages: list[ChatMessage], out: TextIO) -> None:
-    summaries = [
+def compaction_summaries(messages: list[ChatMessage]) -> list[tuple[int, ChatMessage]]:
+    return [
         (i, msg)
         for i, msg in _enumerate_messages(messages)
         if _is_compaction_summary(msg)
     ]
-    if not summaries:
-        out.write("(no compaction summaries found)\n\n")
-        return
+
+
+def write_compactions(summaries: list[tuple[int, ChatMessage]], out: TextIO) -> None:
     for seq, (idx, msg) in enumerate(summaries, 1):
         body = _extract_summary_body(extract_text(msg))
         out.write(
@@ -336,9 +337,6 @@ def _extract_sample(
     stem: str,
     sample_id: str | int,
     epoch: int,
-    *,
-    compactions: bool,
-    messages: bool,
 ) -> None:
     sample = resolve_sample_attachments(
         read_eval_log_sample(str(eval_path), id=sample_id, epoch=epoch)
@@ -355,11 +353,11 @@ def _extract_sample(
 
     write("info.json", lambda f: write_info(sample, f))
 
-    loop_messages = main_loop_messages(sample) if (messages or compactions) else []
-    if compactions:
-        write("compactions.txt", lambda f: write_compactions(loop_messages, f))
-    if messages:
-        write("messages.txt", lambda f: write_transcript(loop_messages, f))
+    messages = main_loop_messages(sample)
+    write("messages.txt", lambda f: write_transcript(messages, f))
+    summaries = compaction_summaries(messages)
+    if summaries:
+        write("compactions.txt", lambda f: write_compactions(summaries, f))
 
     write("scores.txt", lambda f: write_scores(sample, f))
     write("scores.json", lambda f: write_scores_json(sample, f))
@@ -370,8 +368,6 @@ def extract_eval_file(
     out_dir: Path,
     sample_ids: set[str] | None = None,
     *,
-    compactions: bool = True,
-    messages: bool = True,
     sample_workers: int = 1,
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -398,8 +394,6 @@ def extract_eval_file(
                     stem,
                     sid,
                     epoch,
-                    compactions=compactions,
-                    messages=messages,
                 )
                 for stem, sid, epoch in specs
             ]
@@ -414,6 +408,4 @@ def extract_eval_file(
             stem,
             sid,
             epoch,
-            compactions=compactions,
-            messages=messages,
         )
