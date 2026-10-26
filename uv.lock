@@ -841,50 +841,51 @@ wheels = [
 name = "inspect-ai"
 version = "0.3.266"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.11'",
+]
 dependencies = [
-    { name = "agent-client-protocol" },
-    { name = "aiobotocore" },
-    { name = "anyio" },
-    { name = "beautifulsoup4" },
-    { name = "boto3" },
-    { name = "click" },
-    { name = "debugpy" },
-    { name = "docstring-parser" },
+    { name = "agent-client-protocol", marker = "python_full_version < '3.11'" },
+    { name = "aiobotocore", marker = "python_full_version < '3.11'" },
+    { name = "anyio", marker = "python_full_version < '3.11'" },
+    { name = "beautifulsoup4", marker = "python_full_version < '3.11'" },
+    { name = "boto3", marker = "python_full_version < '3.11'" },
+    { name = "click", marker = "python_full_version < '3.11'" },
+    { name = "debugpy", marker = "python_full_version < '3.11'" },
+    { name = "docstring-parser", marker = "python_full_version < '3.11'" },
     { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
-    { name = "fastapi" },
-    { name = "fsspec" },
-    { name = "httpx" },
-    { name = "ijson" },
-    { name = "jsonlines" },
-    { name = "jsonpatch" },
-    { name = "jsonpath-ng" },
-    { name = "jsonref" },
-    { name = "jsonschema" },
-    { name = "markdown-it-py" },
-    { name = "mmh3" },
-    { name = "nest-asyncio2" },
+    { name = "fastapi", marker = "python_full_version < '3.11'" },
+    { name = "fsspec", marker = "python_full_version < '3.11'" },
+    { name = "httpx", marker = "python_full_version < '3.11'" },
+    { name = "ijson", marker = "python_full_version < '3.11'" },
+    { name = "jsonlines", marker = "python_full_version < '3.11'" },
+    { name = "jsonpatch", marker = "python_full_version < '3.11'" },
+    { name = "jsonpath-ng", marker = "python_full_version < '3.11'" },
+    { name = "jsonref", marker = "python_full_version < '3.11'" },
+    { name = "jsonschema", marker = "python_full_version < '3.11'" },
+    { name = "markdown-it-py", marker = "python_full_version < '3.11'" },
+    { name = "mmh3", marker = "python_full_version < '3.11'" },
+    { name = "nest-asyncio2", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
-    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "platformdirs" },
-    { name = "psutil" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "pyyaml" },
-    { name = "rich" },
-    { name = "s3fs" },
-    { name = "semver" },
-    { name = "shortuuid" },
-    { name = "sniffio" },
-    { name = "tenacity" },
-    { name = "textual" },
-    { name = "tiktoken" },
-    { name = "typing-extensions" },
-    { name = "universal-pathlib" },
-    { name = "uvicorn" },
-    { name = "zipfile-zstd", marker = "python_full_version < '3.14'" },
-    { name = "zipp" },
-    { name = "zstandard" },
+    { name = "platformdirs", marker = "python_full_version < '3.11'" },
+    { name = "psutil", marker = "python_full_version < '3.11'" },
+    { name = "pydantic", marker = "python_full_version < '3.11'" },
+    { name = "python-dotenv", marker = "python_full_version < '3.11'" },
+    { name = "pyyaml", marker = "python_full_version < '3.11'" },
+    { name = "rich", marker = "python_full_version < '3.11'" },
+    { name = "s3fs", marker = "python_full_version < '3.11'" },
+    { name = "semver", marker = "python_full_version < '3.11'" },
+    { name = "shortuuid", marker = "python_full_version < '3.11'" },
+    { name = "sniffio", marker = "python_full_version < '3.11'" },
+    { name = "tenacity", marker = "python_full_version < '3.11'" },
+    { name = "textual", marker = "python_full_version < '3.11'" },
+    { name = "tiktoken", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "universal-pathlib", marker = "python_full_version < '3.11'" },
+    { name = "uvicorn", marker = "python_full_version < '3.11'" },
+    { name = "zipfile-zstd", marker = "python_full_version < '3.11'" },
+    { name = "zipp", marker = "python_full_version < '3.11'" },
+    { name = "zstandard", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/5a/5b/2bb88d9bae363c613f64d1f9592ea93920c4a75da52669a18198a4b8d3fc/inspect_ai-0.3.266.tar.gz", hash = "sha256:07b26e1d197f22bf5d512f96e1790dc6130208eac4eafce6c170edd632856f0f", size = 35718190, upload-time = "2026-09-19T13:11:08.176Z" }
 wheels = [
@@ -892,16 +893,79 @@ wheels = [
 ]
 
 [[package]]
+name = "inspect-ai"
+version = "0.3.285"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version == '3.11.*'",
+]
+dependencies = [
+    { name = "agent-client-protocol", marker = "python_full_version >= '3.11'" },
+    { name = "aiobotocore", marker = "python_full_version >= '3.11'" },
+    { name = "anyio", marker = "python_full_version >= '3.11'" },
+    { name = "beautifulsoup4", marker = "python_full_version >= '3.11'" },
+    { name = "boto3", marker = "python_full_version >= '3.11'" },
+    { name = "click", marker = "python_full_version >= '3.11'" },
+    { name = "debugpy", marker = "python_full_version >= '3.11'" },
+    { name = "docstring-parser", marker = "python_full_version >= '3.11'" },
+    { name = "fastapi", marker = "python_full_version >= '3.11'" },
+    { name = "fsspec", marker = "python_full_version >= '3.11'" },
+    { name = "httpx", marker = "python_full_version >= '3.11'" },
+    { name = "ijson", marker = "python_full_version >= '3.11'" },
+    { name = "jsonlines", marker = "python_full_version >= '3.11'" },
+    { name = "jsonpatch", marker = "python_full_version >= '3.11'" },
+    { name = "jsonpath-ng", marker = "python_full_version >= '3.11'" },
+    { name = "jsonref", marker = "python_full_version >= '3.11'" },
+    { name = "jsonschema", marker = "python_full_version >= '3.11'" },
+    { name = "markdown-it-py", marker = "python_full_version >= '3.11'" },
+    { name = "mmh3", marker = "python_full_version >= '3.11'" },
+    { name = "nest-asyncio2", version = "1.7.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "platformdirs", marker = "python_full_version >= '3.11'" },
+    { name = "psutil", marker = "python_full_version >= '3.11'" },
+    { name = "pydantic", marker = "python_full_version >= '3.11'" },
+    { name = "python-dotenv", marker = "python_full_version >= '3.11'" },
+    { name = "pyyaml", marker = "python_full_version >= '3.11'" },
+    { name = "rich", marker = "python_full_version >= '3.11'" },
+    { name = "s3fs", marker = "python_full_version >= '3.11'" },
+    { name = "semver", marker = "python_full_version >= '3.11'" },
+    { name = "shortuuid", marker = "python_full_version >= '3.11'" },
+    { name = "sniffio", marker = "python_full_version >= '3.11'" },
+    { name = "tenacity", marker = "python_full_version >= '3.11'" },
+    { name = "textual", marker = "python_full_version >= '3.11'" },
+    { name = "tiktoken", marker = "python_full_version >= '3.11'" },
+    { name = "typing-extensions", marker = "python_full_version >= '3.11'" },
+    { name = "universal-pathlib", marker = "python_full_version >= '3.11'" },
+    { name = "uvicorn", marker = "python_full_version >= '3.11'" },
+    { name = "zipfile-zstd", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "zipp", marker = "python_full_version >= '3.11'" },
+    { name = "zstandard", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c0/e0/595bf39b253826aaa8fd886e44ca41fc5fc9730e20aad044b8d5f927d32d/inspect_ai-0.3.285.tar.gz", hash = "sha256:78b927ddb6bf959f00cb9baffc5081eb4872067961000463696a92134c8d2025", size = 36578076, upload-time = "2026-10-25T14:29:12.556Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/1f/ee409d639d66453f864c719c3d0d544cd234b3b2a0deef730c4cd4d55c32/inspect_ai-0.3.285-py3-none-any.whl", hash = "sha256:4658e36773e9d78116a69a3eb066f47698aa7ea9fc1c0146927a86f02b455aa6", size = 35251997, upload-time = "2026-10-25T14:29:08.272Z" },
+]
+
+[[package]]
 name = "inspect-boltons"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "inspect-ai" },
+    { name = "inspect-ai", version = "0.3.266", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "inspect-ai", version = "0.3.285", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "tabulate" },
+]
+
+[package.optional-dependencies]
+swarm = [
+    { name = "inspect-swarm", marker = "python_full_version >= '3.11'" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "inspect-swarm", marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -911,15 +975,32 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "inspect-ai", specifier = ">=0.3.241" },
+    { name = "inspect-swarm", marker = "python_full_version >= '3.11' and extra == 'swarm'", specifier = ">=0.1.0" },
     { name = "tabulate", specifier = ">=0.10.0" },
 ]
+provides-extras = ["swarm"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "inspect-swarm", marker = "python_full_version >= '3.11'", specifier = ">=0.1.0" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "ruff", specifier = ">=0.16.8" },
     { name = "ty", specifier = ">=0.0.82" },
+]
+
+[[package]]
+name = "inspect-swarm"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio", marker = "python_full_version >= '3.11'" },
+    { name = "inspect-ai", version = "0.3.285", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pydantic", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dd/7a/47f9fb7dd58b29715b2985b5398c53be6cc09b3321b73ada98ab273b02f0/inspect_swarm-0.1.0.tar.gz", hash = "sha256:78e75588583f6a09716973589fe1dbb9bebacf0f2b6a0cd6244ae0e31d7b9048", size = 88033, upload-time = "2026-10-23T13:23:48.01Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/0f/b86e986fb631688286690571dfd2d85e1ed76b49dadd74809b7e061dd12b/inspect_swarm-0.1.0-py3-none-any.whl", hash = "sha256:e4600ae6709673cd33048b50728a626376d5f943df9e79e2918d6b330b99299d", size = 101415, upload-time = "2026-10-23T13:23:46.65Z" },
 ]
 
 [[package]]
@@ -1393,9 +1474,25 @@ wheels = [
 name = "nest-asyncio2"
 version = "1.7.2"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.11'",
+]
 sdist = { url = "https://files.pythonhosted.org/packages/b4/73/731debf26e27e0a0323d7bda270dc2f634b398e38f040a09da1f4351d0aa/nest_asyncio2-1.7.2.tar.gz", hash = "sha256:1921d70b92cc4612c374928d081552efb59b83d91b2b789d935c665fa01729a8", size = 14743, upload-time = "2026-02-13T00:34:04.386Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c5/3c/3179b85b0e1c3659f0369940200cd6d0fa900e6cefcc7ea0bc6dd0e29ffb/nest_asyncio2-1.7.2-py3-none-any.whl", hash = "sha256:f5dfa702f3f81f6a03857e9a19e2ba578c0946a4ad417b4c50a24d7ba641fe01", size = 7843, upload-time = "2026-02-13T00:34:02.691Z" },
+]
+
+[[package]]
+name = "nest-asyncio2"
+version = "1.7.4"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+    "python_full_version == '3.11.*'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/32/2c/70e3b6bb2189cfd260280b7e1042bd622949a258663f95e887fada4ac1e6/nest_asyncio2-1.7.4.tar.gz", hash = "sha256:995b1409d926ec55e0876ea39a69bffdd8852cf1db3652c177e8c8ffdbcaf3cc", size = 16891, upload-time = "2026-10-07T22:31:50.507Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/09/ed/559d2915dce85794bc0c36064043da170da50cd98746dcbddd85d5932017/nest_asyncio2-1.7.4-py3-none-any.whl", hash = "sha256:86e77b52c3d1496b294af3c944b44213b9b82a12a5ee590c0acc4ca4692ef6c7", size = 8543, upload-time = "2026-10-07T22:31:49.245Z" },
 ]
 
 [[package]]

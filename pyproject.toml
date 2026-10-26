@@ -10,10 +10,14 @@ dependencies = [
     "tabulate>=0.10.0",
 ]
 
+[project.optional-dependencies]
+swarm = ["inspect-swarm>=0.1.0; python_version >= '3.11'"]
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "inspect-swarm>=0.1.0; python_version >= '3.11'",
     "ruff>=0.16.8",
     "ty>=0.0.82",
 ]
