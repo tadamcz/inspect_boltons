@@ -6,7 +6,8 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
-    "inspect-ai>=0.3.241",
+    # compaction.py imports Inspect internals that first appear in 0.3.264.
+    "inspect-ai>=0.3.264",
     "tabulate>=0.10.0",
 ]
 
