@@ -910,7 +910,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "inspect-ai", specifier = ">=0.3.241" },
+    { name = "inspect-ai", specifier = ">=0.3.264" },
     { name = "tabulate", specifier = ">=0.10.0" },
 ]
 

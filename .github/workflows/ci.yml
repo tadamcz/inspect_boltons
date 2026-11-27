@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        inspect-ai: ["0.3.241", "0.3.249", "0.3.257", "latest"]
+        inspect-ai: ["0.3.264", "0.3.273", "0.3.280", "latest"]
     name: ty + pytest (inspect-ai ${{ matrix.inspect-ai }})
     steps:
       - uses: actions/checkout@v5
